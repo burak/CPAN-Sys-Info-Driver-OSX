@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use vars qw($VERSION);
 use base qw(Sys::Info::Base);
-use Unix::Processors;
 use POSIX ();
 use Carp qw( croak );
 use Sys::Info::Driver::OSX;
@@ -14,13 +13,24 @@ sub identify {
     my $self = shift;
 
     if ( ! $self->{META_DATA} ) {
-        my $up   = Unix::Processors->new;
+        my($cpu) = system_profiler( 'SPHardwareDataType' );
+
+        # $cpu:
+        #    'physical_memory' => '4 GB',
+        #    'serial_number' => 'W8025TMQATM',
+        #    'boot_rom_version' => 'MBP71.0039.B0B',
+        #    'machine_name' => 'MacBook Pro',
+        #    'SMC_version_system' => '1.62f6',
+        #    'platform_UUID' => '23985E75-7B4C-5D25-BF98-6E37D958926C',
+        #    'machine_model' => 'MacBookPro7,1'
+
         my $mach = $self->uname->{machine} || fsysctl('hw.machine_arch'); # hw.machine?
         my $arch = $mach =~ m{ i [0-9] 86 }xmsi ? 'x86'
                  : $mach =~ m{ ia64       }xmsi ? 'IA64'
                  : $mach =~ m{ x86_64     }xmsi ? 'AMD-64'
                  :                                 $mach
                  ;
+
         my $name = fsysctl('hw.model');
         $name =~ s{\s+}{ }xms;
         my $byteorder = nsysctl('hw.byteorder');
@@ -38,24 +48,29 @@ sub identify {
             }
         }
 
+        my($cache_size) = split m{\s+}xms, $cpu->{l2_cache};
+        my($speed) = split m{\s+}xms, $cpu->{current_processor_speed};
+        $cache_size *= 1024;
+        $speed      *= 1000;
+
         push @{ $self->{META_DATA} }, {
             architecture                 => $arch,
             processor_id                 => 1,
             data_width                   => undef,
             address_width                => undef,
-            bus_speed                    => undef,
-            speed                        => $up->max_clock,
-            name                         => $name,
+            bus_speed                    => $cpu->{bus_speed},
+            speed                        => $speed,
+            name                         => $cpu->{cpu_type} || $name,
             family                       => undef,
             manufacturer                 => undef,
             model                        => undef,
             stepping                     => undef,
-            number_of_cores              => $up->max_physical,
-            number_of_logical_processors => $up->max_online,
-            L2_cache                     => {max_cache_size => undef},
+            number_of_cores              => $cpu->{number_processors},
+            number_of_logical_processors => $cpu->{packages},
+            L2_cache                     => { max_cache_size => $cache_size },
             flags                        => @flags ? [ @flags ] : undef,
             ( $byteorder ? (byteorder    => $byteorder):()),
-        } for 1..fsysctl('hw.ncpu');
+        } for 1..$cpu->{number_processors};
     }
     #$VAR1 = 'Intel(R) Core(TM)2 Duo CPU     P8600  @ 2.40GHz';
     return $self->_serve_from_cache(wantarray);
@@ -95,7 +110,7 @@ Sys::Info::Driver::OSX::Device::CPU - OSX CPU Device Driver
 
 =head1 DESCRIPTION
 
-Identifies the CPU with L<Unix::Processors>, L<POSIX>.
+Identifies the CPU with system commands, L<POSIX>.
 
 =head1 METHODS
 
@@ -115,6 +130,6 @@ See bitness in L<Sys::Info::Device::CPU>.
 
 L<Sys::Info>,
 L<Sys::Info::Device::CPU>,
-L<Unix::Processors>, L<POSIX>.
+L<POSIX>.
 
 =cut

@@ -7,7 +7,7 @@ use Carp qw( croak );
 use Capture::Tiny qw( capture );
 
 $VERSION = '0.73';
-@EXPORT  = qw( fsysctl nsysctl dmesg sw_vers );
+@EXPORT  = qw( fsysctl nsysctl dmesg sw_vers system_profiler );
 
 use constant ERROR_KEY_MISMATCH =>
     'Can not happen! Input name and output name mismatch: %s vs %s';
@@ -19,6 +19,26 @@ use constant SYSCTL_NOT_EXISTS  =>
     qr{second \s level \s name .+? in .+? is \s invalid}xms,
     qr{name                    .+? in .+? is \s unknown}xms,
 ;
+
+sub system_profiler {
+    # SPSoftwareDataType -> os version. user
+    # SPHardwareDataType -> cpu
+    # SPMemoryDataType -> ramler
+    my(@types) = @_;
+    my($out, $error) = capture { system system_profiler => '-xml', (@types ? @types : ()) };
+    require Mac::PropertyList;
+    my $raw = Mac::PropertyList::parse_plist( $out )->as_perl;
+    my %rv;
+    foreach my $e ( @$raw ) {
+        my $key = delete $e->{_dataType};
+        my $value = delete $e->{_items};
+        if ( @{ $value } == 1 ) {
+            $value = $value->[0];
+        }
+        $rv{ $key } = $value;
+    }
+    return @types && @types == 1 ? values %rv : %rv;
+}
 
 sub sw_vers {
     my($out, $error) = capture { system 'sw_vers' };

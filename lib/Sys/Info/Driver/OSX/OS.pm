@@ -47,7 +47,7 @@ sub meta {
 
     my $cpu       = Sys::Info::Device->new('CPU');
     my $arch      = ($cpu->identify)[0]->{architecture};
-    my $physmem   = fsysctl('hw.physmem');
+    my $physmem   = fsysctl('hw.memsize'); # physmem
     my $usermem   = fsysctl('hw.usermem');
 
     # XXX
@@ -64,8 +64,8 @@ sub meta {
     $info{install_date}              = undef;
     $info{boot_device}               = undef;
 
-    $info{physical_memory_total}     = $physmem;
-    $info{physical_memory_available} = $physmem - $usermem;
+    $info{physical_memory_total}     = $physmem / 1024;
+    $info{physical_memory_available} = ( $physmem - $usermem ) / 1024;
     $info{page_file_total}           = $swap{size};
     $info{page_file_available}       = $swap{size} - $swap{used};
 

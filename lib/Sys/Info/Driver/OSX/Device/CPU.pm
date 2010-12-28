@@ -24,7 +24,7 @@ sub identify {
         #    'platform_UUID' => '23985E75-7B4C-5D25-BF98-6E37D958926C',
         #    'machine_model' => 'MacBookPro7,1'
 
-        my $mach = $self->uname->{machine} || fsysctl('hw.machine_arch'); # hw.machine?
+        my $mach = $self->uname->{machine} || fsysctl('hw.machine_arch');
         my $arch = $mach =~ m{ i [0-9] 86 }xmsi ? 'x86'
                  : $mach =~ m{ ia64       }xmsi ? 'IA64'
                  : $mach =~ m{ x86_64     }xmsi ? 'AMD-64'
@@ -39,14 +39,19 @@ sub identify {
 
         $self->{META_DATA} = [];
 
-        my %d = dmesg();
-        if ( $d{CPU} ) {
-            my %cpu = %{ $d{CPU} };
-            for my $slot ( @cpu{ qw/ flags AMD_flags / } ) {
-                next if ! $slot;
-                push @flags, @{ $slot };
-            }
+        my $optional = nsysctl('hw.optional');
+        my @hwo = map   { m{\Ahw[.]optional[.](.+?)\z} }
+                  grep  { $optional->{ $_ } }
+                  keys %{ $optional };
+        if ( @hwo ) {
+            my %test = map { $_ => $_ } @hwo;
+            $test{fpu} = delete $test{floatingpoint} if $test{floatingpoint};
+            push @flags, keys %test;
         }
+
+        my $b64 = grep { m{x86_64}xms } @flags;
+        $arch = 'AMD-64' if $b64; # hw.cpu64bit_capable
+        push @flags, 'LM' if $b64;
 
         my($cache_size) = split m{\s+}xms, $cpu->{l2_cache};
         my($speed) = split m{\s+}xms, $cpu->{current_processor_speed};
@@ -86,14 +91,8 @@ sub load {
 
 sub bitness {
     my $self = shift;
-    my %i    = dmesg();
-    my $cpu  = $i{CPU} || return;
-    my %flags;
-    foreach my $slot ( $cpu->{flags}, $cpu->{AMD_flags} ) {
-        next if ! $slot;
-        $flags{ $_ } = 1 for @{ $slot };
-    }
-    return $flags{LM} ? '64' : '32';
+    my $LM   = grep { $_ eq 'LM' } map { @{$_->{flags}} } $self->identify;
+    return $LM ? '64' : '32';
 }
 
 1;

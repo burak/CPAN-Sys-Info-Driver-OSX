@@ -15,14 +15,14 @@ my %OSVERSION;
 
 my $EDITION = {
     # taken from Wikipedia
-    0 => { name => 'Cheetah',      announced => '',                 released => 'March 24, 2001'     },
-    1 => { name => 'Puma',         announced => 'July 18, 2001',    released => 'September 25, 2001' },
-    2 => { name => 'Jaguar',       announced => 'May 6, 2002',      released => 'August 24, 2002'    },
-    3 => { name => 'Panther',      announced => 'June 23, 2003',    released => 'October 24, 2003'   },
-    4 => { name => 'Tiger',        announced => 'May 4, 2004',      released => 'April 29, 2005'     },
-    5 => { name => 'Leopard',      announced => 'June 26, 2006',    released => 'October 26, 2007'   },
-    6 => { name => 'Snow Leopard', announced => 'June 9, 2008',     released => 'August 28, 2009'    },
-    7 => { name => 'Lion',         announced => 'October 20, 2010', released => 'Q2 2011'            },
+    0 => 'Cheetah',
+    1 => 'Puma',
+    2 => 'Jaguar',
+    3 => 'Panther',
+    4 => 'Tiger',
+    5 => 'Leopard',
+    6 => 'Snow Leopard',
+    7 => 'Lion',
 };
 
 # unimplemented
@@ -73,7 +73,7 @@ sub meta {
     $info{windows_dir}               = undef;
     $info{system_dir}                = undef;
 
-    $info{system_manufacturer}       = undef;
+    $info{system_manufacturer}       = 'Apple Inc.';
     $info{system_model}              = undef;
     $info{system_type}               = sprintf '%s based Computer', $arch;
 
@@ -162,11 +162,9 @@ sub _file_has_substr {
 }
 
 sub _probe_edition {
-    my $self = shift;
-    my $v = shift;
+    my($self, $v) = @_;
     my($major, $minor, $patch) = split m{[.]}xms, $v;
-    my $e = $EDITION->{ $minor } || return;
-    return $e->{name};
+    return $EDITION->{ $minor };
 }
 
 sub _populate_osversion {

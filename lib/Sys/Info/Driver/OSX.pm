@@ -22,11 +22,16 @@ sub system_profiler {
     # SPHardwareDataType -> cpu
     # SPMemoryDataType -> ramler
     my(@types) = @_;
-    my($out, $error) = capture { system system_profiler => '-xml', (@types ? @types : ()) };
+    my($out, $error) = capture {
+                        system system_profiler => '-xml',
+                                                    (@types ? @types : ())
+                    };
+
     require Mac::PropertyList;
     my $raw = Mac::PropertyList::parse_plist( $out )->as_perl;
     my %rv;
     foreach my $e ( @$raw ) {
+        next if ref $e ne 'HASH' || ! (keys %{ $e });
         my $key = delete $e->{_dataType};
         my $value = delete $e->{_items};
         if ( @{ $value } == 1 ) {
@@ -34,6 +39,7 @@ sub system_profiler {
         }
         $rv{ $key } = $value;
     }
+
     return @types && @types == 1 ? values %rv : %rv;
 }
 

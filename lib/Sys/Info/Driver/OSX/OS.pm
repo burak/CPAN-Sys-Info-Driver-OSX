@@ -147,7 +147,11 @@ sub fs {
 
 sub bitness {
     my $self = shift;
-    return;
+    my($sw) = system_profiler( 'SPSoftwareDataType' );
+    return if ref $sw ne 'HASH';
+    return if ! exists $sw->{'64bit_kernel_and_kexts'};
+    my $type = $sw->{'64bit_kernel_and_kexts'} || q{};
+    return $type eq 'yes' ? 64 : 32;
 }
 
 # ------------------------[ P R I V A T E ]------------------------ #
@@ -260,6 +264,7 @@ Please see L<Sys::Info::OS> for definitions of these methods and more.
 =head1 SEE ALSO
 
 L<Sys::Info>, L<Sys::Info::OS>,
-L<http://en.wikipedia.org/wiki/Mac_OS_X>.
+L<http://en.wikipedia.org/wiki/Mac_OS_X>,
+L<http://stackoverflow.com/questions/3610424/determine-kernel-bitness-in-mac-os-x-10-6>.
 
 =cut

@@ -1,9 +1,8 @@
 package Sys::Info::Driver::OSX::Device;
 use strict;
 use warnings;
-use vars qw( $VERSION );
 
-$VERSION = '0.70';
+our $VERSION = '0.73';
 
 1;
 

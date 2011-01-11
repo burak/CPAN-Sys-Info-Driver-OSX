@@ -1,14 +1,13 @@
 package Sys::Info::Driver::OSX::Device::CPU;
 use strict;
 use warnings;
-use vars qw($VERSION);
 use base qw(Sys::Info::Base);
-use POSIX ();
 use Carp qw( croak );
+use POSIX ();
 use Sys::Info::Driver::OSX;
 use constant RE_SPACE => qr{\s+}xms;
 
-$VERSION = '0.70';
+our $VERSION = '0.73';
 
 sub identify {
     my $self = shift;
@@ -27,13 +26,6 @@ sub identify {
             }
             $rv->{machdep}{cpu};
         };
-
-        # $cpu:
-        #    'boot_rom_version' => 'MBP71.0039.B0B',
-        #    'machine_name' => 'MacBook Pro',
-        #    'SMC_version_system' => '1.62f6',
-        #    'platform_UUID' => '23985E75-7B4C-5D25-BF98-6E37D958926C',
-        #    'machine_model' => 'MacBookPro7,1'
 
         my $mach = $self->uname->{machine} || fsysctl('hw.machine_arch');
         my $arch = $mach =~ m{ i [0-9] 86 }xmsi ? 'x86'
@@ -87,7 +79,7 @@ sub identify {
             ( $byteorder ? (byteorder    => $byteorder):()),
         } for 1..$cpu->{number_processors};
     }
-    #$VAR1 = 'Intel(R) Core(TM)2 Duo CPU     P8600  @ 2.40GHz';
+
     return $self->_serve_from_cache(wantarray);
 }
 

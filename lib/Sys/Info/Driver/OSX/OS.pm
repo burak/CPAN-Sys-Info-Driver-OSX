@@ -1,15 +1,14 @@
 package Sys::Info::Driver::OSX::OS;
 use strict;
 use warnings;
-use vars qw( $VERSION );
 use base qw( Sys::Info::Base );
-use POSIX ();
-use Cwd;
 use Carp qw( croak );
+use Cwd;
+use POSIX ();
 use Sys::Info::Constants qw( LIN_REAL_NAME_FIELD );
 use Sys::Info::Driver::OSX;
 
-$VERSION = '0.70';
+our $VERSION = '0.73';
 
 my %OSVERSION;
 

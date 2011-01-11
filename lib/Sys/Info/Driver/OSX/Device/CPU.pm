@@ -6,6 +6,7 @@ use base qw(Sys::Info::Base);
 use POSIX ();
 use Carp qw( croak );
 use Sys::Info::Driver::OSX;
+use constant RE_SPACE => qr{\s+}xms;
 
 $VERSION = '0.70';
 
@@ -15,9 +16,19 @@ sub identify {
     if ( ! $self->{META_DATA} ) {
         my($cpu) = system_profiler( 'SPHardwareDataType' );
 
+        my $mcpu = do {
+            my $rv;
+            my $mcpu = nsysctl('machdep.cpu');
+            foreach my $key ( keys %{ $mcpu } ) {
+                my @k = split m{[.]}xms, $key;
+                my $e = $rv->{ shift @k } ||= {};
+                $e = $e->{$_} ||= {} for @k;
+                $e->{value} = $mcpu->{ $key };
+            }
+            $rv->{machdep}{cpu};
+        };
+
         # $cpu:
-        #    'physical_memory' => '4 GB',
-        #    'serial_number' => 'W8025TMQATM',
         #    'boot_rom_version' => 'MBP71.0039.B0B',
         #    'machine_name' => 'MacBook Pro',
         #    'SMC_version_system' => '1.62f6',
@@ -34,31 +45,30 @@ sub identify {
         my $name = fsysctl('hw.model');
         $name =~ s{\s+}{ }xms;
         my $byteorder = nsysctl('hw.byteorder');
+
         my @flags;
-        push @flags, 'FPU' if nsysctl('hw.floatingpoint');
+        foreach my $f ( @{$mcpu}{qw/ extfeatures features /} ) {
+            next if ref $f ne 'HASH';
+            next if ! $f->{value};
+            push @flags, split RE_SPACE, __PACKAGE__->trim( $f->{value} );
+        }
 
         $self->{META_DATA} = [];
 
-        my $optional = nsysctl('hw.optional');
-        my @hwo = map   { m{\Ahw[.]optional[.](.+?)\z} }
-                  grep  { $optional->{ $_ } }
-                  keys %{ $optional };
-        if ( @hwo ) {
-            my %test = map { $_ => $_ } @hwo;
-            $test{fpu} = delete $test{floatingpoint} if $test{floatingpoint};
-            push @flags, keys %test;
+        my%flag = map { $_ => 1 } @flags;
+        # hw.cpu64bit_capable
+        if ( $flag{EM64T} || grep { m{x86_64}xms } @flags ) {
+            $arch = 'AMD-64';
+            push @flags, 'LM';
         }
 
-        my $b64 = grep { m{x86_64}xms } @flags;
-        $arch = 'AMD-64' if $b64; # hw.cpu64bit_capable
-        push @flags, 'LM' if $b64;
-
-        my($cache_size) = split m{\s+}xms, $cpu->{l2_cache};
-        my($speed) = split m{\s+}xms, $cpu->{current_processor_speed};
-        $cache_size *= 1024;
-        $speed      *= 1000;
+        my($cache_size) = split RE_SPACE, $cpu->{l2_cache};
+        my($speed)      = split RE_SPACE, $cpu->{current_processor_speed};
+        $cache_size    *= 1024;
+        $speed         *= 1000;
 
         push @{ $self->{META_DATA} }, {
+            serial_number                => $cpu->{serial_number},
             architecture                 => $arch,
             processor_id                 => 1,
             data_width                   => undef,
@@ -66,14 +76,14 @@ sub identify {
             bus_speed                    => $cpu->{bus_speed},
             speed                        => $speed,
             name                         => $cpu->{cpu_type} || $name,
-            family                       => undef,
-            manufacturer                 => undef,
-            model                        => undef,
-            stepping                     => undef,
-            number_of_cores              => $cpu->{number_processors},
-            number_of_logical_processors => $cpu->{packages},
+            family                       => $mcpu->{family}{value},
+            manufacturer                 => $mcpu->{vendor}{value},
+            model                        => $mcpu->{model}{value},
+            stepping                     => $mcpu->{stepping}{value},
+            number_of_cores              => $mcpu->{core_count}{value},
+            number_of_logical_processors => $mcpu->{cores_per_package}{value},
             L2_cache                     => { max_cache_size => $cache_size },
-            flags                        => @flags ? [ @flags ] : undef,
+            flags                        => @flags ? [ sort @flags ] : undef,
             ( $byteorder ? (byteorder    => $byteorder):()),
         } for 1..$cpu->{number_processors};
     }

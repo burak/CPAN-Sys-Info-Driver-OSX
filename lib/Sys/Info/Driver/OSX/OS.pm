@@ -52,6 +52,7 @@ sub meta {
     # XXX
     my %swap;
     @swap{ qw/ path size used / } = qw( TODO 0 0);
+    $swap{path} = undef;
 
     my %info;
 

@@ -54,10 +54,10 @@ sub identify {
             push @flags, 'LM';
         }
 
-        my($cache_size) = split RE_SPACE, $cpu->{l2_cache};
-        my($speed)      = split RE_SPACE, $cpu->{current_processor_speed};
-        $cache_size    *= 1024;
-        $speed         *= 1000;
+        my($cache_size) = $cpu->{l2_cache} ? split RE_SPACE, $cpu->{l2_cache} : 0;
+        my($speed)      = $cpu->{current_processor_speed} ? split RE_SPACE, $cpu->{current_processor_speed} : 0;
+        $cache_size    *= 1024 if $cache_size;
+        $speed         *= 1000 if $speed;
 
         push @{ $self->{META_DATA} }, {
             serial_number                => $cpu->{serial_number},
@@ -93,7 +93,9 @@ sub load {
 
 sub bitness {
     my $self = shift;
-    my $LM   = grep { $_ eq 'LM' } map { @{$_->{flags}} } $self->identify;
+    my @id   = $self->identify or return;
+    @id = grep { ref $_ } @id  or return;
+    my $LM   = grep { $_ eq 'LM' } map { @{$_->{flags}} } @id;
     return $LM ? '64' : '32';
 }
 

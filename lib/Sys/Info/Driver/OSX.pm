@@ -11,7 +11,7 @@ use constant SYSCTL_NOT_EXISTS  =>
 use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 
-our $VERSION = '0.79';
+our $VERSION = '0.791';
 our @EXPORT  = qw( fsysctl nsysctl sw_vers system_profiler );
 
 sub system_profiler {

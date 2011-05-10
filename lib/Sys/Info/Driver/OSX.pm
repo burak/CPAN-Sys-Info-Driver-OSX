@@ -11,7 +11,7 @@ use constant SYSCTL_NOT_EXISTS  =>
 use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 
-our $VERSION = '0.791';
+our $VERSION = '0.792';
 our @EXPORT  = qw( fsysctl nsysctl sw_vers system_profiler );
 
 sub system_profiler {
@@ -66,9 +66,9 @@ sub _sysctl {
 
     if ( $out ) {
         foreach my $row ( split m{\n}xms, $out ) {
+            chomp $row;
+            next if ! $row;
             my($name, $value) = split m{:\s}xms, $row, 2;
-            chomp $name;
-            chomp $value;
             croak 'Can not happen! No value in output!'
                 if ! $value && $value ne '0';
             $rv{ $name } = $value;

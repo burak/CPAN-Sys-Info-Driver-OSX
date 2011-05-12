@@ -12,6 +12,12 @@ our $VERSION = '0.73';
 
 my %OSVERSION;
 
+my %FILE = (
+    install_history => '/Library/Receipts/InstallHistory.plist',
+    server_version  => '/System/Library/CoreServices/ServerVersion.plist',
+    cdis            => '/var/log/CDIS.custom',
+);
+
 my $EDITION = {
     # taken from Wikipedia
     0 => 'Cheetah',
@@ -56,12 +62,16 @@ sub meta {
 
     my %info;
 
+    # http://www.jaharmi.com/2007/05/11/read_the_mac_os_x_edition_and_version_from_prope
+    # desktop: /System/Library/CoreServices/SystemVersion.plist
+    my $has_server = -e $FILE{server_version};
+
     $info{manufacturer}              = 'Apple Inc.';
-    $info{build_type}                = undef;
+    $info{build_type}                = $has_server ? 'Server' : 'Desktop';
     $info{owner}                     = undef;
     $info{organization}              = undef;
     $info{product_id}                = undef;
-    $info{install_date}              = undef;
+    $info{install_date}              = $self->_install_date;
     $info{boot_device}               = undef;
 
     $info{physical_memory_total}     = $physmem / 1024;
@@ -155,6 +165,37 @@ sub bitness {
 }
 
 # ------------------------[ P R I V A T E ]------------------------ #
+
+sub _install_date {
+    my $self = shift;
+    # I have no /var/log/OSInstall.custom on my system, so I believe that
+    # file is no longer reliable
+    my @idate;
+    push @idate, -e $FILE{cdis} ? ( stat $FILE{cdis} )[10] : ();
+
+    if ( -e $FILE{install_history} ) {
+        my $rec  = plist( $FILE{install_history} );
+        push @idate, $rec ? do {
+            # poor mans date parser
+            my $d = $rec->[0]{date} || q();
+            my($y,$h) = split m{T}xms, $d, 2;
+            if ( $y && $h ) {
+                chop $h;
+                my($year, $mon, $mday) = split m{\-}xms, $y;
+                my($hour, $min, $sec)  = split m{:}xms, $h;
+                require Time::Local;
+                Time::Local::timelocal(
+                    $sec, $min, $hour, $mday, $mon - 1, $year
+                );
+            }
+            else {
+                ()
+            }
+        } : ();
+    }
+
+   return @idate ? (sort { $a <=> $b } @idate)[0] : undef;
+}
 
 sub _file_has_substr {
     my $self = shift;

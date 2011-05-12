@@ -14,7 +14,14 @@ use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 
 our $VERSION = '0.793';
-our @EXPORT  = qw( fsysctl nsysctl sw_vers system_profiler );
+our @EXPORT  = qw( fsysctl nsysctl sw_vers system_profiler plist );
+
+sub plist {
+    my $thing = shift;
+    my $raw   = $thing !~ m{\n}xms && -e $thing ? __PACKAGE__->slurp( $thing ) : $thing;
+    require Mac::PropertyList;
+    return Mac::PropertyList::parse_plist( $raw )->as_perl;
+}
 
 sub system_profiler {
     # SPSoftwareDataType -> os version. user
@@ -25,8 +32,7 @@ sub system_profiler {
         system system_profiler => '-xml', (@types ? @types : ())
     };
 
-    require Mac::PropertyList;
-    my $raw = Mac::PropertyList::parse_plist( $out )->as_perl;
+    my $raw = plist( $out );
 
     my %rv;
     foreach my $e ( @{ $raw } ) {
@@ -138,5 +144,9 @@ System call to system_profiler.
 =head2 sw_vers
 
 System call to sw_vers.
+
+=head2 plist
+
+Converts a file or raw plist data into a Perl structure.
 
 =cut

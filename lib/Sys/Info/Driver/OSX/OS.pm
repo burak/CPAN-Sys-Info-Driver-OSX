@@ -45,7 +45,7 @@ sub tz {
 
 sub meta {
     my $self = shift;
-    $self->_populate_osversion();
+    $self->_populate_osversion;
 
     require POSIX;
     require Sys::Info::Device;
@@ -215,28 +215,28 @@ sub _probe_edition {
 sub _populate_osversion {
     return if %OSVERSION;
     my $self    = shift;
-    require POSIX;
-    my($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
+    my $uname   = $self->uname;
 
     # 'Darwin Kernel Version 10.5.0: Fri Nov  5 23:20:39 PDT 2010; root:xnu-1504.9.17~1/RELEASE_I386',
-    my($stuff, $root) = split m{;}xms, $version, 2;
+    my($stuff, $root) = split m{;}xms, $uname->{version}, 2;
     my($name, $stamp) = split m{:}xms, $stuff, 2;
     $_ = __PACKAGE__->trim( $_ ) for $stuff, $root, $name, $stamp;
 
-    my %sw_vers = sw_vers();
-
+    my %sw_vers    = sw_vers();
     my $build_date = $stamp ? $self->date2time( $stamp ) : undef;
     my $build      = $sw_vers{BuildVersion} || $stamp;
-    my $edition    = $self->_probe_edition( $sw_vers{ProductVersion} || $release );
+    my $edition    = $self->_probe_edition(
+                        $sw_vers{ProductVersion} || $uname->{release}
+                    );
 
-    $sysname = 'Mac OSX' if $sysname eq 'Darwin';
+    my $sysname = $uname->{sysname} eq 'Darwin' ? 'Mac OSX' : $uname->{sysname};
 
     %OSVERSION = (
         NAME             => $sysname,
         NAME_EDITION     => $edition ? "$sysname ($edition)" : $sysname,
         LONGNAME         => q{}, # will be set below
         LONGNAME_EDITION => q{}, # will be set below
-        VERSION  => $sw_vers{ProductVersion} || $release,
+        VERSION  => $sw_vers{ProductVersion} || $uname->{release},
         KERNEL   => undef,
         RAW      => {
                         BUILD      => defined $build      ? $build      : 0,

@@ -62,7 +62,7 @@ sub meta {
 
     my %info;
 
-    # http://www.jaharmi.com/2007/05/11/read_the_mac_os_x_edition_and_version_from_prope
+    # http://jaharmi.com/2007/05/11/read_the_mac_os_x_edition_and_version_from_prope
     # desktop: /System/Library/CoreServices/SystemVersion.plist
     my $has_server = -e $FILE{server_version};
 

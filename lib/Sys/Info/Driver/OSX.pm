@@ -13,12 +13,20 @@ use constant RE_SYSCTL_ROW   => qr{:(?:\s)+?}xms;
 use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 
-our $VERSION = '0.793';
-our @EXPORT  = qw( fsysctl nsysctl sw_vers system_profiler plist );
+our $VERSION = '0.794';
+our @EXPORT  = qw(
+    fsysctl
+    nsysctl
+    plist
+    sw_vers
+    system_profiler
+);
 
 sub plist {
     my $thing = shift;
-    my $raw   = $thing !~ m{\n}xms && -e $thing ? __PACKAGE__->slurp( $thing ) : $thing;
+    my $raw   = $thing !~ m{\n}xms && -e $thing
+              ? __PACKAGE__->slurp( $thing )
+              : $thing;
     require Mac::PropertyList;
     return Mac::PropertyList::parse_plist( $raw )->as_perl;
 }

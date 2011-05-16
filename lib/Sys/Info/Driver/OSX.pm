@@ -7,8 +7,9 @@ use constant SYSCTL_NOT_EXISTS  =>
     qr{second \s level \s name .+? in .+? is \s invalid}xms,
     qr{name                    .+? in .+? is \s unknown}xms,
 ;
-use constant RE_SYSCTL_SPLIT => qr{\n+}xms;
-use constant RE_SYSCTL_ROW   => qr{:(?:\s)+?}xms;
+use constant RE_SYSCTL_SPLIT   => qr{\n+}xms;
+use constant RE_SYSCTL_ROW     => qr{:(?:\s)+?}xms;
+use constant RE_OLD_SYSCTL_ROW => qr{(?:\s)+?=(?:\s)+?}xms;
 
 use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
@@ -83,14 +84,7 @@ sub _sysctl {
         foreach my $row ( split RE_SYSCTL_SPLIT, $out ) {
             chomp $row;
             next if ! $row;
-            my($name, $value) = split RE_SYSCTL_ROW, $row, 2;
-            if ( ! $value && $value ne '0' ) {
-                croak sprintf q(Can't happen: No value in output for property )
-                            . q('%s' inside row '%s' collected from key '%s'),
-                                $name || q([no name]),
-                                $row,
-                                $key;
-            }
+            my($name, $value) = _parse_sysctl_row( $row, $key );
             $rv{ $name } = $value;
         }
     }
@@ -104,6 +98,24 @@ sub _sysctl {
         error => $error,
         bogus => $error ? _sysctl_not_exists( $error ) : 0,
     };
+}
+
+sub _parse_sysctl_row {
+    my($row, $key, $major) = @_;
+    $major ||= do {
+        my %sw_vers = sw_vers();
+        (split m{[.]}xms, $sw_vers{ProductVersion} || q{})[0] || 0;
+    };
+    my $re_row = $major == 10 ? RE_SYSCTL_ROW : RE_OLD_SYSCTL_ROW;
+    my($name, $value) = split $re_row, $row, 2;
+    if ( ! $value && ( ! defined $value || $value ne '0' ) ) {
+        croak sprintf q(Can't happen: No value in output for property )
+                    . q('%s' inside row '%s' collected from key '%s'),
+                        $name || q([no name]),
+                        $row,
+                        $key;
+    }
+    return $name, $value;
 }
 
 sub _sysctl_not_exists {

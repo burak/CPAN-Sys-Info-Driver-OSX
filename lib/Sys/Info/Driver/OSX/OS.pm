@@ -1,6 +1,9 @@
 package Sys::Info::Driver::OSX::OS;
 use strict;
 use warnings;
+
+our $VERSION = '0.73';
+
 use base qw( Sys::Info::Base );
 use Carp qw( croak );
 use Cwd;
@@ -8,7 +11,21 @@ use POSIX ();
 use Sys::Info::Constants qw( LIN_REAL_NAME_FIELD );
 use Sys::Info::Driver::OSX;
 
-our $VERSION = '0.73';
+use constant RE_DATE_STAMP => qr{
+    \A
+     [a-z]{3}  \s                       # Thu
+    ([a-z]{3}) \s                       # May
+    ([0-9]{2}) \s                       # 12
+    ([0-9]{2} : [0-9]{2} : [0-9]{2}) \s # 00:51:29
+    ([0-9]{4})                          # 2011
+    \z
+}xmsi;
+
+my %MONTH_TO_ID = do {
+    my $c = 0;
+    map { $_ => $c++ }
+        qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
+};
 
 my %OSVERSION;
 
@@ -114,8 +131,16 @@ sub build     { shift->_populate_osversion(); return $OSVERSION{RAW}->{BUILD} }
 sub uptime {
     my $key   = 'kern.boottime';
     my $value = fsysctl $key;
-    if ( $value =~ m<\A[{](.+?)[}]\s+?(.+?)\z>xms ) {
-        my($data, $stamp) = ($1, $2);
+    my $sec   = _parse_uptime( $value, $key );
+    croak "Bogus data returned from $key: $value" if ! $sec;
+    return $sec;
+}
+
+sub _parse_uptime {
+    my($value, $key) = @_;
+
+    if ( my @m = $value =~ m<\A[{](.+?)[}]\s+?(.+?)\z>xms ) {
+        my($data, $stamp) = @m;
         my %data = map {
                         map {
                             __PACKAGE__->trim($_)
@@ -124,7 +149,20 @@ sub uptime {
         croak "sec key does not exist in $key" if ! exists $data{sec};
         return $data{sec};
     }
-    croak "Bogus data returned from $key: $value";
+
+    if ( my @m = $value =~ RE_DATE_STAMP ) {
+        my($mon_name, $mday, $hms, $year) = @m;
+        my $mon = $MONTH_TO_ID{ $mon_name }
+                    || croak "Unable to gather month from $mon_name";
+        my($hour, $min, $sec) = split m{:}xms, $hms;
+
+        require Time::Local;
+        return Time::Local::timelocal(
+            $sec, $min, $hour, $mday, $mon, $year
+        );
+    }
+
+    return;
 }
 
 # user methods

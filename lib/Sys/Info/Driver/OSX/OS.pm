@@ -102,7 +102,7 @@ sub meta {
     $info{system_dir}                = undef;
 
     $info{system_manufacturer}       = 'Apple Inc.';
-    $info{system_model}              = undef;
+    $info{system_model}              = undef; # iMac/MacBook ???
     $info{system_type}               = sprintf '%s based Computer', $arch;
 
     $info{page_file_path}            = $swap{path};
@@ -190,6 +190,7 @@ sub node_name { return shift->uname->{nodename} }
 sub domain_name { }
 
 sub fs {
+    # TODO
     my $self = shift;
     return unimplemented => 1;
 }

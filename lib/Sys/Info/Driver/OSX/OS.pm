@@ -138,7 +138,7 @@ sub uptime {
 }
 
 sub _parse_uptime {
-    my($value, $key) = @_;
+    my($value, $key, $use_gmtime) = @_;
 
     if ( my @m = $value =~ m<\A[{](.+?)[}]\s+?(.+?)\z>xms ) {
         my($data, $stamp) = @m;
@@ -158,9 +158,9 @@ sub _parse_uptime {
         my($hour, $min, $sec) = split m{:}xms, $hms;
 
         require Time::Local;
-        return Time::Local::timelocal(
-            $sec, $min, $hour, $mday, $mon, $year
-        );
+        my $converter = $use_gmtime ? \&Time::Local::timegm
+                                    : \&Time::Local::timelocal;
+        return $converter->( $sec, $min, $hour, $mday, $mon, $year );
     }
 
     return;

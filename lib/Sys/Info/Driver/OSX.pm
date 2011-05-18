@@ -14,7 +14,7 @@ use constant RE_OLD_SYSCTL_ROW => qr{(?:\s)+?=(?:\s)+?}xms;
 use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 
-our $VERSION = '0.795';
+our $VERSION = '0.7951';
 our @EXPORT  = qw(
     fsysctl
     nsysctl

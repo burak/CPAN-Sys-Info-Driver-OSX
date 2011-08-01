@@ -8,7 +8,7 @@ use base qw( Sys::Info::Base );
 use Carp qw( croak );
 use Cwd;
 use POSIX ();
-use Sys::Info::Constants qw( LIN_REAL_NAME_FIELD );
+use Sys::Info::Constants qw( USER_REAL_NAME_FIELD );
 use Sys::Info::Driver::OSX;
 
 use constant RE_DATE_STAMP => qr{
@@ -180,7 +180,7 @@ sub login_name {
     my($self, @args) = @_;
     my %opt   = @args % 2 ? () : @args;
     my $login = POSIX::getlogin() || return;
-    my $rv    = eval { $opt{real} ? (getpwnam $login)[LIN_REAL_NAME_FIELD] : $login };
+    my $rv    = eval { $opt{real} ? (getpwnam $login)[USER_REAL_NAME_FIELD] : $login };
     $rv =~ s{ [,]{3,} \z }{}xms if $opt{real};
     return $rv;
 }

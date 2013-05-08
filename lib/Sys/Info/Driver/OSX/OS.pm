@@ -92,8 +92,8 @@ sub meta {
     $info{install_date}              = $self->_install_date;
     $info{boot_device}               = undef;
 
-    $info{physical_memory_total}     = $physmem / 1024;
-    $info{physical_memory_available} = ( $physmem - $usermem ) / 1024;
+    $info{physical_memory_total}     = $physmem;
+    $info{physical_memory_available} = $physmem - $usermem;
     $info{page_file_total}           = $swap{total};
     $info{page_file_available}       = $swap{free};
 

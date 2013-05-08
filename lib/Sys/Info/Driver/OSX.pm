@@ -19,7 +19,7 @@ use constant RE_SYSCTL_ROW     => qr{
 use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 
-our $VERSION = '0.7953';
+our $VERSION = '0.7954';
 our @EXPORT  = qw(
     fsysctl
     nsysctl

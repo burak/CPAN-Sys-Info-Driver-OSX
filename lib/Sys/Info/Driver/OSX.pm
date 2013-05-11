@@ -18,8 +18,9 @@ use constant RE_SYSCTL_ROW     => qr{
 
 use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
+use Mac::PropertyList;
 
-our $VERSION = '0.7954';
+our $VERSION = '0.7955';
 our @EXPORT  = qw(
     fsysctl
     nsysctl
@@ -33,9 +34,21 @@ sub plist {
     my $raw   = $thing !~ m{\n}xms && -e $thing
               ? __PACKAGE__->slurp( $thing )
               : $thing;
-    require Mac::PropertyList;
-    my $prop = Mac::PropertyList::parse_plist( $raw )
-                    || croak "Unable to parse plist: $thing";
+    my($prop, $fatal);
+    eval {
+        $prop = Mac::PropertyList::parse_plist( $raw );
+        1;
+    } or do {
+        $fatal = $@ || 'unknown error';
+    };
+
+    if ( ! $prop || $fatal ) {
+        my $fmt = $fatal ? 'Unable to parse plist(%s): %s'
+                :          'Unable to parse plist(%s)'
+                ;
+        croak sprintf $fmt, $thing, $fatal ? $fatal : ();
+    }
+
     return $prop->as_perl;
 }
 

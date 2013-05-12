@@ -75,9 +75,8 @@ sub meta {
 
     my $cpu       = Sys::Info::Device->new('CPU');
     my $arch      = ($cpu->identify)[0]->{architecture};
-    my $physmem   = fsysctl('hw.memsize'); # physmem
-    my $usermem   = fsysctl('hw.usermem');
     my %swap      = $self->_probe_swap;
+    my %vm_stat   = vm_stat();
     my %info;
 
     # http://jaharmi.com/2007/05/11/read_the_mac_os_x_edition_and_version_from_prope
@@ -92,8 +91,8 @@ sub meta {
     $info{install_date}              = $self->_install_date;
     $info{boot_device}               = undef;
 
-    $info{physical_memory_total}     = $physmem;
-    $info{physical_memory_available} = $physmem - $usermem;
+    $info{physical_memory_total}     = fsysctl('hw.memsize');
+    $info{physical_memory_available} = $vm_stat{memory_free};
     $info{page_file_total}           = $swap{total};
     $info{page_file_available}       = $swap{free};
 

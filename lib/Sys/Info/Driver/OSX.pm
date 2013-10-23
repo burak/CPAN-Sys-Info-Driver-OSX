@@ -20,7 +20,7 @@ use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 use Mac::PropertyList;
 
-our $VERSION = '0.7957';
+our $VERSION = '0.7958';
 our @EXPORT  = qw(
     fsysctl
     nsysctl

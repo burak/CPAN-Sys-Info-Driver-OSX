@@ -51,6 +51,8 @@ my $EDITION = {
     5 => 'Leopard',
     6 => 'Snow Leopard',
     7 => 'Lion',
+    8 => 'Mountain Lion',
+    9 => 'Mavericks',
 };
 
 # unimplemented

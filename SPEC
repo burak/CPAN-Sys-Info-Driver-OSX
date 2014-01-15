@@ -13,7 +13,7 @@ die "OS unsupported\n" if $^O ne 'darwin';
     },
     meta_merge     => {
         resources => {
-            repository => 'http://bitbucket.org/burak/cpan-sys-info-driver-osx/',
+            repository => 'http://github.com/burak/cpan-sys-info-driver-osx/',
         },
     },
     BUILDER => {

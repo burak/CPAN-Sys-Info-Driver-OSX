@@ -57,7 +57,11 @@ sub identify {
         my($cache_size) = $c2  ? split RE_SPACE, $c2  : 0;
         my($speed)      = $cps ? split RE_SPACE, $cps : 0;
         $cache_size    *= 1024 if $cache_size;
-        $speed         *= 1000 if $speed;
+        if ( $speed ) {
+            # locale might change the decimal separator
+            $speed =~ s{ [,] }{.}xms;
+            $speed *= 1000;
+        }
 
         push @{ $self->{META_DATA} }, {
             serial_number                => $cpu->{serial_number},

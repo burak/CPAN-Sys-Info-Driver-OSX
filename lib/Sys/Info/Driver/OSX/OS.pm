@@ -1,8 +1,7 @@
 package Sys::Info::Driver::OSX::OS;
+
 use strict;
 use warnings;
-
-our $VERSION = '0.73';
 
 use base qw( Sys::Info::Base );
 use Carp qw( croak );

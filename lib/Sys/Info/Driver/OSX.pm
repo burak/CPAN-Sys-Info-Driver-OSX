@@ -1,4 +1,5 @@
 package Sys::Info::Driver::OSX;
+
 use strict;
 use warnings;
 use base qw( Exporter Sys::Info::Base );
@@ -20,7 +21,6 @@ use Capture::Tiny qw( capture );
 use Carp          qw( croak   );
 use Mac::PropertyList;
 
-our $VERSION = '0.7958';
 our @EXPORT  = qw(
     fsysctl
     nsysctl

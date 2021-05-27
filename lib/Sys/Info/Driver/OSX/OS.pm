@@ -3,7 +3,7 @@ package Sys::Info::Driver::OSX::OS;
 use strict;
 use warnings;
 
-use base qw( Sys::Info::Base );
+use parent qw( Sys::Info::Base );
 use Carp qw( croak );
 use Cwd;
 use POSIX ();

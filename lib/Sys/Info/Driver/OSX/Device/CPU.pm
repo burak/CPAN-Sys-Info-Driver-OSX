@@ -2,7 +2,7 @@ package Sys::Info::Driver::OSX::Device::CPU;
 
 use strict;
 use warnings;
-use base qw(Sys::Info::Base);
+use parent qw(Sys::Info::Base);
 use Carp qw( croak );
 use POSIX ();
 use Sys::Info::Driver::OSX;

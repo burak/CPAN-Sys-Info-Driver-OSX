@@ -2,7 +2,7 @@ package Sys::Info::Driver::OSX;
 
 use strict;
 use warnings;
-use base qw( Exporter Sys::Info::Base );
+use parent qw( Exporter Sys::Info::Base );
 use constant SYSCTL_NOT_EXISTS  =>
     qr{top    \s level \s name .+? in .+? is \s invalid}xms,
     qr{second \s level \s name .+? in .+? is \s invalid}xms,

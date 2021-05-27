@@ -13,7 +13,7 @@ Sys::Info::Driver::OSX::Device - Base class for OSX device drivers
 
 =head1 SYNOPSIS
 
-    use base qw( Sys::Info::Driver::OSX::Device );
+    use parent qw( Sys::Info::Driver::OSX::Device );
 
 =head1 DESCRIPTION
 

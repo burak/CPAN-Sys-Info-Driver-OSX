@@ -74,7 +74,7 @@ sub identify {
             address_width                => undef,
             bus_speed                    => $cpu->{bus_speed},
             speed                        => $speed,
-            name                         => $cpu->{cpu_type} || $name,
+            name                         => $cpu->{cpu_type} || $cpu->{chip_type} || $name,
             family                       => $mcpu->{family}{value},
             manufacturer                 => $mcpu->{vendor}{value},
             model                        => $mcpu->{model}{value},

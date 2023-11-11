@@ -69,7 +69,7 @@ sub identify {
                     state $warned_non_root;
                     my $me = getpwuid $<;
                     if ( ! $warned_non_root++ ) {
-                        warn "We can't probe for CPU speed for Apple Silicon with the current user $me and need root to be able to collect more information.";
+                        warn "We can't probe for CPU speed for Apple Silicon with the current user $me and need root/sudo to be able to collect more information.";
                     }
                 }
                 else {

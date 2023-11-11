@@ -4,6 +4,8 @@ Revision history for Perl extension Sys::Info::Driver::OSX.
      - OS name updates.
      - OS/CPU bitness fix.
      - Wrap powermetrics.
+     - Offer to probe with powermetrics optionally as it needs root.
+          This is needed to get the Apple Silicon speed.
 
 0.7960 2021-05-31 BURAK
     - dkechag: Support for M1 Macs

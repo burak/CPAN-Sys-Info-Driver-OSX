@@ -1,5 +1,6 @@
 package Sys::Info::Driver::OSX::Device::CPU;
 
+use 5.010;
 use strict;
 use warnings;
 use parent qw(Sys::Info::Base);
@@ -61,6 +62,38 @@ sub identify {
             # locale might change the decimal separator
             $speed =~ s{ [,] }{.}xms;
             $speed *= 1000;
+        }
+        else {
+            if ( $arch eq 'arm64' ) {
+                if ( $< ) {
+                    state $warned_non_root;
+                    my $me = getpwuid $<;
+                    if ( ! $warned_non_root++ ) {
+                        warn "We can't probe for CPU speed for Apple Silicon with the current user $me and need root to be able to collect more information.";
+                    }
+                }
+                else {
+                    my %pm = powermetrics(
+                                -s => 'cpu_power',
+                                -n => 1,
+                                -i => 1,
+                            );
+                    my %af = map { $_ => $pm{ $_ } }
+                            grep { $pm{$_} ne ' 0 MHz' }
+                            grep { $_ =~ m{ \QHW active frequency\E }xms }
+                            keys %pm;
+                    my @clusters_speed = sort { $a <=> $b}
+                                            map {
+                                                (
+                                                    split m{\s+}xms,
+                                                        __PACKAGE__->trim( $_ )
+                                                )[0]
+                                            }
+                                            values %af;
+                    # get the max. Likely P-N cluster.
+                    $speed = $clusters_speed[-1];
+                }
+            }
         }
 
         my $proc_num = $cpu->{number_processors};

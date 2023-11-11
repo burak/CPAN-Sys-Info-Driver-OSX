@@ -25,6 +25,7 @@ our @EXPORT  = qw(
     fsysctl
     nsysctl
     plist
+    powermetrics
     sw_vers
     system_profiler
     vm_stat
@@ -220,6 +221,34 @@ sub _sysctl_not_exists {
     return 0;
 }
 
+sub powermetrics {
+    my @opt = @_;
+    if ( $< ) {
+        croak sprintf 'powermetrics can only be executed as root and not %s (%s)',
+                (getpwuid $<)[0],
+                $<,
+        ;
+    }
+    my $success;
+    my($out, $error) = capture {
+        $success = ! system "/usr/bin/powermetrics @opt";
+    };
+
+    $_ = __PACKAGE__->trim( $_ ) for $out, $error;
+
+    croak "Unable to capture `powermetrics`: $error" if $error || ! $success;
+
+    my @info = split m{ [\n]+ }xms, $out;
+    my %info;
+    for my $i ( @info ) {
+        next if $i =~ m{ \A [*] }xms;
+        my($k, $v) = split m{[:]}xms, $i, 2;
+        $info{$k} = $v;
+    }
+
+    return %info;
+}
+
 1;
 
 __END__
@@ -249,6 +278,10 @@ f(atal)sysctl().
 =head2 nsysctl
 
 n(ormal)sysctl.
+
+=head2 powermetrics
+
+System call to powermetrics. Needs sudo/root.
 
 =head2 system_profiler
 

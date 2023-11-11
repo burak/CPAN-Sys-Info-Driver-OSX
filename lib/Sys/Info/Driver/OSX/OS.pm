@@ -320,18 +320,19 @@ sub _populate_osversion {
                 ? ( $major == 10 ? 'Mac OSX' : 'macOS' )
                 : $uname->{sysname};
 
+    my %v = (
+        BUILD      => defined $build      ? __PACKAGE__->trim($build)      : 0,
+        BUILD_DATE => defined $build_date ? __PACKAGE__->trim($build_date) : 0,
+        EDITION    => $edition,
+    );
     %OSVERSION = (
-        NAME             => $sysname,
-        NAME_EDITION     => $edition ? "$sysname ($edition)" : $sysname,
+        KERNEL           => undef,
         LONGNAME         => q{}, # will be set below
         LONGNAME_EDITION => q{}, # will be set below
-        VERSION  => $raw_version,
-        KERNEL   => undef,
-        RAW      => {
-                        BUILD      => defined $build      ? __PACKAGE__->trim($build)      : 0,
-                        BUILD_DATE => defined $build_date ? __PACKAGE__->trim($build_date) : 0,
-                        EDITION    => $edition,
-                    },
+        NAME             => $sysname,
+        NAME_EDITION     => $edition ? "$sysname ($edition)" : $sysname,
+        RAW              => { %v },
+        VERSION          => $raw_version,
     );
 
     $OSVERSION{LONGNAME}         = sprintf '%s %s',

@@ -40,7 +40,7 @@ my %FILE = (
     cdis            => '/var/log/CDIS.custom',
 );
 
-my $EDITION = {
+my $XEDITION = {
     # taken from Wikipedia
     0 => 'Cheetah',
     1 => 'Puma',
@@ -52,6 +52,19 @@ my $EDITION = {
     7 => 'Lion',
     8 => 'Mountain Lion',
     9 => 'Mavericks',
+    10 => 'Yosemite',
+    11 => 'El Capitan',
+    12 => 'Sierra',
+    13 => 'High Sierra',
+    14 => 'Mojave',
+    15 => 'Catalina',
+};
+
+my $MACOS = {
+    11 => 'Big Sur',
+    12 => 'Monterey',
+    13 => 'Ventura',
+    14 => 'Sonoma',
 };
 
 # unimplemented
@@ -279,9 +292,10 @@ sub _file_has_substr {
 }
 
 sub _probe_edition {
-    my($self, $v) = @_;
-    my($major, $minor, $patch) = split m{[.]}xms, $v;
-    return $EDITION->{ $minor };
+    my($self, $major, $minor, $patc) = @_;
+    my $name = $major == 10 ? $XEDITION->{ $minor }
+                            : $MACOS->{ $major };
+    return $name || 'Unknown macOS';
 }
 
 sub _populate_osversion {
@@ -297,22 +311,24 @@ sub _populate_osversion {
     my %sw_vers    = sw_vers();
     my $build_date = $stamp ? $self->date2time( $stamp ) : undef;
     my $build      = $sw_vers{BuildVersion} || $stamp;
-    my $edition    = $self->_probe_edition(
-                        $sw_vers{ProductVersion} || $uname->{release}
-                    );
+    my $raw_version = __PACKAGE__->trim( $sw_vers{ProductVersion} || $uname->{release} );
+    my($major, $minor, $patch) = split m{[.]}xms, $raw_version;
+    my $edition    = $self->_probe_edition( $major, $minor, $patch );
 
-    my $sysname = $uname->{sysname} eq 'Darwin' ? 'Mac OSX' : $uname->{sysname};
+    my $sysname = $uname->{sysname} eq 'Darwin'
+                ? ( $major == 10 ? 'Mac OSX' : 'macOS' )
+                : $uname->{sysname};
 
     %OSVERSION = (
         NAME             => $sysname,
         NAME_EDITION     => $edition ? "$sysname ($edition)" : $sysname,
         LONGNAME         => q{}, # will be set below
         LONGNAME_EDITION => q{}, # will be set below
-        VERSION  => $sw_vers{ProductVersion} || $uname->{release},
+        VERSION  => $raw_version,
         KERNEL   => undef,
         RAW      => {
-                        BUILD      => defined $build      ? $build      : 0,
-                        BUILD_DATE => defined $build_date ? $build_date : 0,
+                        BUILD      => defined $build      ? __PACKAGE__->trim($build)      : 0,
+                        BUILD_DATE => defined $build_date ? __PACKAGE__->trim($build_date) : 0,
                         EDITION    => $edition,
                     },
     );

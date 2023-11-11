@@ -213,6 +213,7 @@ sub bitness {
     my $v    = $self->uname->{version} || q{};
     return $v =~ m{ [/]RELEASE_X86_64 \z }xms ? 64
         :  $v =~ m{ [/]RELEASE_I386      }xms ? 32
+        :  $v =~ m{ [/]RELEASE_ARM64     }xms ? 64
         : do {
             my($sw) = system_profiler( 'SPSoftwareDataType' );
             return if ref $sw ne 'HASH';

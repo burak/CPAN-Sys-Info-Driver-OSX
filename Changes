@@ -2,6 +2,7 @@ Revision history for Perl extension Sys::Info::Driver::OSX.
 
 {{$NEXT}}
      - OS name updates.
+     - OS/CPU bitness fix.
 
 0.7960 2021-05-31 BURAK
     - dkechag: Support for M1 Macs

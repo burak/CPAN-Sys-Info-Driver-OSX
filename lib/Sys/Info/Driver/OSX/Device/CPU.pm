@@ -74,7 +74,7 @@ sub identify {
             address_width                => undef,
             bus_speed                    => $cpu->{bus_speed},
             speed                        => $speed,
-            name                         => $cpu->{cpu_type} || $name,
+            name                         => $cpu->{chip_type} || $cpu->{cpu_type} || $name,
             family                       => $mcpu->{family}{value},
             manufacturer                 => $mcpu->{vendor}{value},
             model                        => $mcpu->{model}{value},
@@ -108,6 +108,10 @@ sub bitness {
 
     my @flags;
     foreach my $cpu ( grep { ref $_ eq 'HASH' } @cpus ) {
+        if ( my $arch = $cpu->{architecture} ) {
+            # Apple Silicon
+            return '64' if $arch eq 'arm64';
+        }
         next if ref $cpu->{flags} ne 'ARRAY';
         push @flags, @{ $cpu->{flags} };
     }

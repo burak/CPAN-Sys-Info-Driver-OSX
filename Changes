@@ -1,6 +1,8 @@
 Revision history for Perl extension Sys::Info::Driver::OSX.
 
 {{$NEXT}}
+
+0.7961 2023-11-11 BURAK
      - OS name updates.
      - OS/CPU bitness fix.
      - Wrap powermetrics.

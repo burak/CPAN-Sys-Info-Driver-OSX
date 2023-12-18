@@ -82,7 +82,7 @@ sub identify {
                             grep { $pm{$_} ne ' 0 MHz' }
                             grep { $_ =~ m{ \QHW active frequency\E }xms }
                             keys %pm;
-                    my @clusters_speed = sort { $a <=> $b}
+                    my @clusters_speed = sort { $a <=> $b }
                                             map {
                                                 (
                                                     split m{\s+}xms,

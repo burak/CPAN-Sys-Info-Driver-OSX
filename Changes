@@ -2,6 +2,7 @@ Revision history for Perl extension Sys::Info::Driver::OSX.
 
 {{$NEXT}}
      - Parse powermetrics sub keys.
+     - Detect Sequoia.
 
 0.7961 2023-11-11 BURAK
      - OS name updates.

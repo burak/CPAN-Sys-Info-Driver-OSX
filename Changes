@@ -1,6 +1,7 @@
 Revision history for Perl extension Sys::Info::Driver::OSX.
 
 {{$NEXT}}
+     - Try to read the edition string from the license file.
 
 0.7962 2024-09-09 BURAK
      - Parse powermetrics sub keys.

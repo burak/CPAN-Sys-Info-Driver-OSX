@@ -1,6 +1,8 @@
 Revision history for Perl extension Sys::Info::Driver::OSX.
 
 {{$NEXT}}
+
+0.7963 2024-09-16 BURAK
      - Try to read the edition string from the license file.
 
 0.7962 2024-09-09 BURAK
